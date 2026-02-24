@@ -28,7 +28,9 @@ function saveDefaultTransitions(transitions) {
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
-const uid = () => Math.random().toString(36).slice(2, 10)
+function uid() {
+  return Math.random().toString(36).slice(2, 10)
+}
 
 const STORAGE_KEY = 'crumpet-state'
 
@@ -127,7 +129,14 @@ function reducer(state, action) {
 
   switch (type) {
     case 'RESTORE_STATE':
-      return { ...state, ...payload, settingsOpen: false, appSettingsOpen: false, imagePickerMarkerId: null, imagePickerPosition: null }
+      return {
+        ...state,
+        ...payload,
+        settingsOpen: false,
+        appSettingsOpen: false,
+        imagePickerMarkerId: null,
+        imagePickerPosition: null,
+      }
 
     case 'ADD_TAB': {
       const name = nextTabName(state.tabs)
@@ -359,7 +368,10 @@ function TabBar({ tabs, activeTabId, dispatch }) {
             <div className="flex items-center gap-1">
               <span className="font-mono text-sm tracking-wide">{tab.name}</span>
               <button
-                onClick={e => { e.stopPropagation(); startRename(tab) }}
+                onClick={e => {
+                  e.stopPropagation()
+                  startRename(tab)
+                }}
                 className="opacity-0 group-hover:opacity-100 text-crumpet-muted hover:text-crumpet-orange transition-opacity duration-100"
               >
                 <Pencil size={10} />
@@ -399,13 +411,14 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
   }, [editingId])
 
   function processFiles(files) {
-    Array.from(files).filter(f => f.type.startsWith('image/')).forEach(file => {
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue
       const reader = new FileReader()
       reader.onload = () => {
         dispatch({ type: 'ADD_IMAGE', payload: { dataUri: reader.result } })
       }
       reader.readAsDataURL(file)
-    })
+    }
   }
 
   function handleDrop(e) {
@@ -415,7 +428,7 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
   }
 
   function handleClick(e) {
-    if (e.target.closest('button, input[type="text"], input[type="range"]')) return
+    if (e.target.closest('button, input')) return
     fileInputRef.current?.click()
   }
 
@@ -463,7 +476,10 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
         className="hidden"
       />
       <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+        onDragOver={e => {
+          e.preventDefault()
+          setDragOver(true)
+        }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={handleClick}
@@ -493,7 +509,10 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
                     style={{ maxHeight: thumbSize * 1.5 }}
                   />
                   <button
-                    onClick={e => { e.stopPropagation(); dispatch({ type: 'REMOVE_IMAGE', payload: { id: img.id } }) }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      dispatch({ type: 'REMOVE_IMAGE', payload: { id: img.id } })
+                    }}
                     className="absolute top-0.5 right-0.5 p-0.5 rounded bg-black/60 text-crumpet-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-100"
                     title="Remove image"
                   >
@@ -996,7 +1015,7 @@ function Timeline({ tab, state, dispatch, defaultTransitions }) {
                 <span
                   className="absolute top-4 text-[10px] font-mono text-crumpet-muted whitespace-nowrap"
                   style={{
-                    left: tick.pct === 0 ? '0px' : tick.pct === 100 ? undefined : '0px',
+                    left: tick.pct === 100 ? undefined : '0px',
                     right: tick.pct === 100 ? '0px' : undefined,
                     transform: tick.pct === 0 || tick.pct === 100 ? 'none' : 'translateX(-50%)',
                   }}
@@ -1215,19 +1234,16 @@ function FinalPrompt({ tab }) {
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(prompt)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
     } catch {
-      // Fallback
       const ta = document.createElement('textarea')
       ta.value = prompt
       document.body.appendChild(ta)
       ta.select()
       document.execCommand('copy')
       document.body.removeChild(ta)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
 
   return (

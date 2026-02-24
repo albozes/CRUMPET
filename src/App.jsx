@@ -9,8 +9,17 @@ const MIN_THUMB_SIZE = 48
 const MAX_THUMB_SIZE = 240
 const TEXT_BOX_WIDTH_PX = 180
 
+const APP_VERSION = 'v1.1'
+
 const BUILTIN_TRANSITIONS = ['cut to', 'use']
 const TRANSITIONS_DEFAULTS_KEY = 'crumpet-default-transitions'
+
+const SEPARATOR_OPTIONS = [
+  { value: '\n', label: 'New line' },
+  { value: ', ', label: 'Comma' },
+  { value: '. ', label: 'Period' },
+  { value: '\n\n', label: 'Empty line' },
+]
 
 function loadDefaultTransitions() {
   try {
@@ -58,7 +67,7 @@ function nextTabName(tabs) {
   return `SH${String(next).padStart(3, '0')}`
 }
 
-function buildPrompt(tab) {
+function buildPrompt(tab, separator = '\n') {
   const lines = []
   if (tab.prefix.trim()) lines.push(tab.prefix.trim())
   const sorted = [...tab.markers].sort((a, b) => a.frame - b.frame)
@@ -70,7 +79,7 @@ function buildPrompt(tab) {
     }
   }
   if (tab.suffix.trim()) lines.push(tab.suffix.trim())
-  return lines.join('\n')
+  return lines.join(separator)
 }
 
 function tabHasContent(tab) {
@@ -103,6 +112,7 @@ const initialState = {
   activeTabId: null,
   tabs: [],
   customTransitions: [],
+  promptSeparator: '\n',
   settingsOpen: false,
   appSettingsOpen: false,
   imagePickerMarkerId: null,
@@ -296,6 +306,8 @@ function reducer(state, action) {
       return { ...state, appSettingsOpen: true }
     case 'CLOSE_APP_SETTINGS':
       return { ...state, appSettingsOpen: false }
+    case 'SET_PROMPT_SEPARATOR':
+      return { ...state, promptSeparator: payload }
     case 'OPEN_IMAGE_PICKER':
       return { ...state, imagePickerMarkerId: payload.markerId, imagePickerPosition: payload.position }
     case 'CLOSE_IMAGE_PICKER':
@@ -744,7 +756,7 @@ function TransitionDropdown({ markerId, value, defaultTransitions, customTransit
 
 // ── App Settings Modal (Default Transitions) ──
 
-function AppSettingsModal({ dispatch }) {
+function AppSettingsModal({ dispatch, promptSeparator }) {
   const [transitions, setTransitions] = useState(loadDefaultTransitions)
   const [newValue, setNewValue] = useState('')
   const inputRef = useRef(null)
@@ -788,6 +800,24 @@ function AppSettingsModal({ dispatch }) {
           >
             <X size={16} />
           </button>
+        </div>
+
+        <div className="mb-5">
+          <label className="block text-xs text-crumpet-muted mb-2 uppercase tracking-wider">
+            Prompt Separator
+          </label>
+          <p className="text-[10px] text-[#555] mb-3">
+            How lines are joined in the final prompt output.
+          </p>
+          <select
+            value={promptSeparator}
+            onChange={e => dispatch({ type: 'SET_PROMPT_SEPARATOR', payload: e.target.value })}
+            className="w-full bg-crumpet-bg border border-crumpet-border rounded px-2 py-1.5 text-white font-mono text-xs outline-none focus:border-crumpet-orange transition-colors"
+          >
+            {SEPARATOR_OPTIONS.map(opt => (
+              <option key={opt.label} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -1227,9 +1257,9 @@ function Timeline({ tab, state, dispatch, defaultTransitions }) {
 
 // ── Final Prompt Sidebar ──
 
-function FinalPrompt({ tab }) {
+function FinalPrompt({ tab, separator }) {
   const [copied, setCopied] = useState(false)
-  const prompt = useMemo(() => buildPrompt(tab), [tab])
+  const prompt = useMemo(() => buildPrompt(tab, separator), [tab, separator])
 
   async function handleCopy() {
     try {
@@ -1293,6 +1323,7 @@ export default function App() {
             activeTabId: parsed.activeTabId,
             tabs: parsed.tabs,
             customTransitions: parsed.customTransitions || [],
+            promptSeparator: parsed.promptSeparator || '\n',
           }
         }
       }
@@ -1307,10 +1338,11 @@ export default function App() {
         activeTabId: state.activeTabId,
         tabs: state.tabs,
         customTransitions: state.customTransitions,
+        promptSeparator: state.promptSeparator,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch {}
-  }, [state.activeTabId, state.tabs, state.customTransitions])
+  }, [state.activeTabId, state.tabs, state.customTransitions, state.promptSeparator])
 
   const [thumbSize, setThumbSize] = useState(DEFAULT_THUMB_SIZE)
   const [defaultTransitions, setDefaultTransitions] = useState(loadDefaultTransitions)
@@ -1386,14 +1418,14 @@ export default function App() {
 
         {/* Right sidebar — Final Prompt */}
         <div className="w-80 border-l border-crumpet-border bg-[#0d0d0d] flex-shrink-0">
-          <FinalPrompt tab={activeTab} />
+          <FinalPrompt tab={activeTab} separator={state.promptSeparator} />
         </div>
       </div>
 
       {/* Footer credits */}
       <div className="flex-shrink-0 px-4 py-1.5 border-t border-crumpet-border flex items-center justify-between">
         <span className="text-[10px] font-sans text-[#444]">
-          C.R.U.M.P.E.T. — Controlled Runtime for Unified Media Prompt Engineering and Timing <span className="text-[#333]">v1.0</span>
+          C.R.U.M.P.E.T. — Controlled Runtime for Unified Media Prompt Engineering and Timing <span className="text-[#333]">{APP_VERSION}</span>
         </span>
         <span className="text-[10px] font-sans text-[#444]">
           &copy; 2026 <a href="https://albertbozesan.com/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Albert Bozesan</a> for a <a href="https://storybookstudios.ai/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Storybook Studios</a> project.
@@ -1408,6 +1440,7 @@ export default function App() {
       {/* App settings modal */}
       {state.appSettingsOpen && (
         <AppSettingsModal
+          promptSeparator={state.promptSeparator}
           dispatch={(action) => {
             dispatch(action)
             if (action.type === 'CLOSE_APP_SETTINGS') {

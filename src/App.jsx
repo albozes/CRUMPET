@@ -168,6 +168,14 @@ function reducer(state, action) {
           img.id === payload.id ? { ...img, name: payload.name } : img
         ),
       }))
+    case 'REMOVE_IMAGE':
+      return updateActiveTab(t => ({
+        ...t,
+        images: t.images.filter(img => img.id !== payload.id),
+        markers: t.markers.map(m =>
+          m.imageId === payload.id ? { ...m, imageId: null } : m
+        ),
+      }))
 
     case 'SET_TIMELINE':
       return updateActiveTab(t => {
@@ -475,7 +483,7 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
             {images.map(img => (
               <div key={img.id} className="flex flex-col items-center gap-1 group">
                 <div
-                  className="rounded border border-crumpet-border overflow-hidden bg-crumpet-surface"
+                  className="relative rounded border border-crumpet-border overflow-hidden bg-crumpet-surface"
                   style={{ width: thumbSize, maxHeight: thumbSize * 1.5 }}
                 >
                   <img
@@ -484,6 +492,13 @@ function ImageDropzone({ images, dispatch, thumbSize, onThumbSizeChange }) {
                     className="w-full h-auto block"
                     style={{ maxHeight: thumbSize * 1.5 }}
                   />
+                  <button
+                    onClick={e => { e.stopPropagation(); dispatch({ type: 'REMOVE_IMAGE', payload: { id: img.id } }) }}
+                    className="absolute top-0.5 right-0.5 p-0.5 rounded bg-black/60 text-crumpet-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-100"
+                    title="Remove image"
+                  >
+                    <Trash2 size={10} />
+                  </button>
                 </div>
                 <div className="flex items-center gap-1">
                   {editingId === img.id ? (

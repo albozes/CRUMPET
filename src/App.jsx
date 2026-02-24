@@ -1396,7 +1396,7 @@ export default function App() {
           C.R.U.M.P.E.T. — Controlled Runtime for Unified Media Prompt Engineering and Timing <span className="text-[#333]">v1.0</span>
         </span>
         <span className="text-[10px] font-sans text-[#444]">
-          &copy; 2026 <a href="https://albertbozesan.com/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Albert Bozesan</a> for <a href="https://storybookstudios.ai/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Storybook Studios</a>
+          &copy; 2026 <a href="https://albertbozesan.com/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Albert Bozesan</a> for a <a href="https://storybookstudios.ai/" target="_blank" rel="noopener noreferrer" className="text-[#9a5a1a] underline hover:text-crumpet-orange transition-colors">Storybook Studios</a> project.
         </span>
       </div>
 

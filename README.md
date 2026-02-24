@@ -14,6 +14,13 @@
 
 ---
 
+<p align="center">
+  <img src="public/CRUMPET_still1.jpg" alt="CRUMPET in action — two markers on an 8-second timeline composing a frame-accurate video prompt" width="800" />
+</p>
+<p align="center"><em>Drop images, place markers, write prompts. CRUMPET handles the structure and timing.</em></p>
+
+---
+
 ## What is CRUMPET?
 
 CRUMPET helps you compose precise, frame-accurate text prompts for AI video generation tools. Drop in your keyframes and reference images, place timed markers on a timeline, write prompt fragments for each marker, and CRUMPET assembles everything into a clean final prompt — ready to use.
